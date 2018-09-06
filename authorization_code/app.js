@@ -13,9 +13,9 @@ var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 
-var client_id = 'CLIENT_ID'; // Your client id
-var client_secret = 'CLIENT_SECRET'; // Your secret
-var redirect_uri = 'REDIRECT_URI'; // Your redirect uri
+var client_id = 'f14d12dc761a43e99435abcd6510ab0f'; // Your client id
+var client_secret = '7f1a845d65c34ed6a3aed2ca7077b961'; // Your secret
+var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
 /**
  * Generates a random string containing numbers and letters
@@ -101,16 +101,20 @@ app.get('/callback', function(req, res) {
         // use the access token to access the Spotify Web API
         request.get(options, function(error, response, body) {
           console.log(body);
+
+
         });
 
         // we can also pass the token to the browser to make requests from there
-        res.redirect('/#' +
+        res.redirect('https://www.evbdev.com/react/discovery_music?' +
           querystring.stringify({
             access_token: access_token,
             refresh_token: refresh_token
           }));
+
+
       } else {
-        res.redirect('/#' +
+        res.redirect('https://www.evbdev.com/react/discovery_music?' +
           querystring.stringify({
             error: 'invalid_token'
           }));
@@ -118,6 +122,13 @@ app.get('/callback', function(req, res) {
     });
   }
 });
+
+var secondCall = function(newParamters, data) {
+
+    request(newParamters, function (error, response, data) {
+        res.redirect(data.info.url);
+    });
+}
 
 app.get('/refresh_token', function(req, res) {
 
