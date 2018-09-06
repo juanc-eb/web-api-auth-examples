@@ -46,7 +46,7 @@ app.get('/login', function(req, res) {
   res.cookie(stateKey, state);
 
   // your application requests authorization
-  var scope = 'user-read-private user-read-email';
+  var scope = 'user-top-read';
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
@@ -56,6 +56,22 @@ app.get('/login', function(req, res) {
       state: state
     }));
 });
+
+function getTopArtistsFromUser(body) {
+  var userGenres = new Set();
+  if(!body){
+    return;
+  }
+  var items = body.items;
+  for(item in items){
+    for (genre in items[item].genres){
+        if(!userGenres.has(items[item].genres[genre])){
+          userGenres.add(items[item].genres[genre]);
+        }
+    }
+  }
+  return userGenres;
+}
 
 app.get('/callback', function(req, res) {
 
@@ -91,30 +107,30 @@ app.get('/callback', function(req, res) {
 
         var access_token = body.access_token,
             refresh_token = body.refresh_token;
+        var genres;
 
         var options = {
-          url: 'https://api.spotify.com/v1/me',
+          url: 'https://api.spotify.com/v1/me/top/artists',
           headers: { 'Authorization': 'Bearer ' + access_token },
           json: true
         };
 
         // use the access token to access the Spotify Web API
         request.get(options, function(error, response, body) {
-          console.log(body);
-
-
+          genres = getTopArtistsFromUser(body);
         });
 
         // we can also pass the token to the browser to make requests from there
-        res.redirect('https://www.evbdev.com/react/discovery_music?' +
+        res.redirect('https://www.evbdev.com/react/discovery_music/stub?' +
           querystring.stringify({
             access_token: access_token,
-            refresh_token: refresh_token
+            refresh_token: refresh_token,
+            genres: genres
           }));
 
 
       } else {
-        res.redirect('https://www.evbdev.com/react/discovery_music?' +
+        res.redirect('https://www.evbdev.com/react/discovery_music/stub?' +
           querystring.stringify({
             error: 'invalid_token'
           }));
